@@ -55,7 +55,6 @@ class Traject(object):
         Set force=False and wait=True to block untill the 20 sec are done.'''
         if not force:
             diff = time.time() - self.last_update
-            print diff
             if diff < 20:
                 if wait:
                     time.sleep(20 - diff)
@@ -64,7 +63,6 @@ class Traject(object):
 
         ok, i = False, 0
         while not ok and i < 40:
-            print "update"
             ok = self._update()
             if not ok:
                 time.sleep(3)
