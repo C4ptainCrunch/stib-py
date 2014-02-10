@@ -4,6 +4,14 @@ import time
 import timetables
 
 
+def children_to_dict(elem):
+    d = {}
+    for tag in elem:
+        d[tag.tag] = tag.text
+
+    return d
+
+
 class Stop(object):
     def __init__(self, id, name, present, gps, line):
         self.id = id
@@ -101,6 +109,51 @@ class Traject(object):
 
     def __repr__(self):
         return "<Traject {}: direction {}, {} stops, {} vehicules>".format(self.id, self.terminus.name, len(self.stops), len(self))
+
+
+class NetworkLine(object):
+
+    def __init__(self, number, vehicle_type, terminuses, colors):
+        self.id = number
+        self.type = vehicle_type
+        self.terminuses = terminuses
+        self.colors = colors
+
+    def cast(self, way):
+        wanted_way = way
+        if not wanted_way in (1, 2):
+            for key, name in self.terminuses.iteritems():
+                if name == wanted_way:
+                    way = key
+                    break
+
+        return Traject(self.id, way)
+
+    def __repr__(self):
+        return "<NetworkLine: {}{} '{}'-'{}'>".format(self.type, self.id, self.terminuses[1], self.terminuses[2])
+
+
+class Network(object):
+
+    def __init__(self):
+        self.lines = []
+        self._get_data()
+
+    def _get_data(self):
+        r = requests.get('http://m.stib.be/api/getlinesnew.php')
+        lines = ElementTree.fromstring(r.text)
+
+        for line in lines:
+            line = children_to_dict(line)
+            number = int(line['id'])
+            vehicle_type = line['mode'] if line['mode'] else 'T' # Tram 93 returns None
+            terminuses = {1: line['destination1'].capitalize(), 2: line['destination2'].capitalize()}
+            colors = {'fg': line['fgcolor'], 'bg': line['bgcolor']}
+            self.lines.append(NetworkLine(number, vehicle_type, terminuses, colors))
+
+    def __repr__(self):
+        return "<Netwok: {} lines>".format(len(self.lines))
+
 
 if __name__ == '__main__':
     bus95 = Traject(95, 1) # Bus 95, direction Heiligenborre
