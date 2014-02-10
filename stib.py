@@ -1,17 +1,19 @@
 import requests
 from xml.etree import ElementTree
 import time
+import timetables
 
 
 class Stop(object):
-    def __init__(self, id, name, present, gps):
+    def __init__(self, id, name, present, gps, line):
         self.id = id
         self.name = name
         self.present = present
         self.gps = gps
+        self.line = line
 
     @classmethod
-    def from_xml(klass, node):
+    def from_xml(klass, node, line):
         present = False
         gps = {}
         for tag in node:
@@ -25,11 +27,14 @@ class Stop(object):
                 gps['latitude'] = tag.text
             elif tag.tag == 'longitude':
                 gps['longitude'] = tag.text
-        return Stop(id, name, present, gps)
+        return Stop(id, name, present, gps, line)
 
     def __repr__(self):
         vehicule = 'X' if self.present else '-'
         return "<[{}] Stop {} ({})>".format(vehicule, self.name, self.id)
+
+    def timetable(self, date):
+        return timetables.get(self.line.id, self.id, self.line.way, date)
 
 
 class Traject(object):
@@ -71,7 +76,7 @@ class Traject(object):
         stops = ElementTree.fromstring(r.text)
 
         for stop in stops:
-            self.stops.append(Stop.from_xml(stop))
+            self.stops.append(Stop.from_xml(stop, self))
 
         if len(self) > len(self.stops) / 2.0:
             return False
