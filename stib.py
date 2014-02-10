@@ -42,18 +42,27 @@ class Traject(object):
         self.way = way
         self.stops = []
         self.last_update = 0
+        self.update()
+        self.last_update = 0
 
     def update(self, force=True, wait=False):
         '''Update the traject infos. Set force=False to prevent querying the api if last update if newer than 20 sec
         Set force=False and wait=True to block untill the 20 sec are done.'''
         if not force:
             diff = time.time() - self.last_update
+            print diff
             if diff < 20:
                 if wait:
                     time.sleep(20 - diff)
                 else:
                     return None
-        self._update()
+
+        ok, i = False, 0
+        while not ok and i < 40:
+            print "update"
+            ok = self._update()
+            if not ok:
+                time.sleep(3)
 
     def _update(self):
         self.stops = []
@@ -63,6 +72,11 @@ class Traject(object):
 
         for stop in stops:
             self.stops.append(Stop.from_xml(stop))
+
+        if len(self) > len(self.stops) / 2.0:
+            return False
+        else:
+            return True
 
     @property
     def terminus(self):
