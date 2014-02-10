@@ -3,6 +3,8 @@ from xml.etree import ElementTree
 import time
 import timetables
 
+METRO, BUS, TRAM = 'M', 'B', 'T'
+
 
 def children_to_dict(elem):
     d = {}
@@ -142,7 +144,7 @@ class Network(object):
         for line in lines:
             line = children_to_dict(line)
             number = int(line['id'])
-            vehicle_type = line['mode'] if line['mode'] else 'T' # Tram 93 returns None
+            vehicle_type = line['mode'] if line['mode'] else TRAM # Tram 93 returns None
             terminuses = {1: line['destination1'].capitalize(), 2: line['destination2'].capitalize()}
             colors = {'fg': line['fgcolor'], 'bg': line['bgcolor']}
             self.lines.append(NetworkLine(number, vehicle_type, terminuses, colors))
