@@ -22,20 +22,16 @@ class Stop(object):
 
     @classmethod
     def from_xml(klass, node, line):
-        present = False
         gps = {}
-        for tag in node:
-            if tag.tag == 'name':
-                name = tag.text.capitalize()
-            elif tag.tag == 'id':
-                id = tag.text
-            elif tag.tag == 'present':
-                present = True
-            elif tag.tag == 'latitude':
-                gps['latitude'] = tag.text
-            elif tag.tag == 'longitude':
-                gps['longitude'] = tag.text
-        return Stop(id, name, present, gps, line)
+        node = children_to_dict(node)
+
+        name = node['name'].capitalize()
+        number = int(node['id'])
+        present = True if node.get('present', False) else False
+        gps['latitude'] = float(node['latitude'])
+        gps['longitude'] = float(node['longitude'])
+
+        return Stop(number, name, present, gps, line)
 
     def __repr__(self):
         vehicule = 'X' if self.present else '-'
