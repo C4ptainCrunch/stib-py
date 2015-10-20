@@ -1,0 +1,12 @@
+Liste des lignes :
+    http://m.stib.be/api/getlinesnew.php
+    http://m.stib.be/api/getlinesnew.php?format=json
+
+Temps d'attente :
+    http://m.stib.be/api/getwaitingtimes.php?line=1&iti=2&halt=8131
+
+Liste des arrêts et position des véhicules :
+    http://m.stib.be/api/getitinerary.php?line=1&iti=2
+
+Arrêts à proximité :
+    http://m.stib.be/api/getclosestops.php?latitude=50.815002265139&longitude=4.4099154242589
