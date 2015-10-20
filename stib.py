@@ -1,5 +1,6 @@
 import requests
 from xml.etree import ElementTree
+import datetime
 import time
 import timetables
 
@@ -23,7 +24,7 @@ class Stop(object):
         self.line = line
 
     @classmethod
-    def from_xml(klass, node, line):
+    def from_xml(cls, node, line):
         gps = {}
         node = children_to_dict(node)
 
@@ -33,7 +34,7 @@ class Stop(object):
         gps['latitude'] = float(node['latitude'])
         gps['longitude'] = float(node['longitude'])
 
-        return Stop(number, name, present, gps, line)
+        return cls(number, name, present, gps, line)
 
     def __repr__(self):
         vehicule = 'X' if self.present else '-'
@@ -60,7 +61,7 @@ class Traject(object):
         '''Update the traject infos. Set force=False to prevent querying the api if last update if newer than 20 sec
         Set force=False and wait=True to block untill the 20 sec are done.'''
         if not force:
-            diff = time.time() - self.last_update
+            diff = (datetime.now() - self.last_update).seconds
             if diff < 20:
                 if wait:
                     time.sleep(20 - diff)
@@ -75,7 +76,7 @@ class Traject(object):
 
     def _update(self):
         self.stops = []
-        self.last_update = time.time()
+        self.last_update = datetime.now()
         r = requests.get('http://m.stib.be/api/getitinerary.php?line={}&iti={}'.format(self.id, self.way))
         stops = ElementTree.fromstring(r.text)
 
@@ -119,7 +120,7 @@ class NetworkLine(object):
 
     def cast(self, way):
         wanted_way = way
-        if not wanted_way in (1, 2):
+        if wanted_way not in (1, 2):
             for key, name in self.terminuses.iteritems():
                 if name == wanted_way:
                     way = key
@@ -144,6 +145,8 @@ class Network(object):
         for line in lines:
             line = children_to_dict(line)
             number = int(line['id'])
+            if number > 200:
+                number = "N{}".format(number - 200)
             vehicle_type = line['mode'] if line['mode'] else TRAM # Tram 93 returns None
             terminuses = {1: line['destination1'].capitalize(), 2: line['destination2'].capitalize()}
             colors = {'fg': line['fgcolor'], 'bg': line['bgcolor']}
@@ -155,14 +158,14 @@ class Network(object):
 
 if __name__ == '__main__':
     bus95 = Traject(95, 1) # Bus 95, direction Heiligenborre
-    print "Line 95, direction Heiligenborre"
-    print repr(bus95)
-    print '--------------------'
-    print "The 10th stop"
-    print repr(bus95.stops[10])
-    print 'GSP coords'
-    print repr(bus95.stops[10].gps)
-    print '--------------------'
-    print 'All stops :'
+    print("Line 95, direction Heiligenborre")
+    print(repr(bus95))
+    print('--------------------')
+    print("The 10th stop")
+    print(repr(bus95.stops[10]))
+    print('GSP coords')
+    print(repr(bus95.stops[10].gps))
+    print('--------------------')
+    print('All stops :')
     for stop in bus95.stops:
-        print repr(stop)
+        print(repr(stop))
